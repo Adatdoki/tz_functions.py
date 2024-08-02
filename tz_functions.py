@@ -74,31 +74,31 @@ def list_unique_values(df):
 import numpy as np
 
 #def list_unique_values(dataframe, list_values=10, columns=None, dtype="all", search_value=None):
-    if columns is None:
-        columns = dataframe.columns.tolist()
+if columns is None:
+    columns = dataframe.columns.tolist()
 
-    for column in columns:
-        print('PARAMÉTEREZÉS: luv(dataframe, list_values=10, columns=["column1", "column2", ...], dtype="all/object/int64/float64/datetime64", search_value="valami")  = list_unique_values(dataframe)')
-        if dtype == "numeric" and not np.issubdtype(dataframe[column].dtype, np.number):
-            continue
-        elif dtype == "object" and not np.issubdtype(dataframe[column].dtype, object):
-            continue
+for column in columns:
+    print('PARAMÉTEREZÉS: luv(dataframe, list_values=10, columns=["column1", "column2", ...], dtype="all/object/int64/float64/datetime64", search_value="valami")  = list_unique_values(dataframe)')
+    if dtype == "numeric" and not np.issubdtype(dataframe[column].dtype, np.number):
+        continue
+    elif dtype == "object" and not np.issubdtype(dataframe[column].dtype, object):
+        continue
 
-        column_type = dataframe[column].dtype
-        if search_value:
-            values = dataframe[dataframe[column] == search_value][column].value_counts()
-        else:
-            values = dataframe[column].value_counts()
+    column_type = dataframe[column].dtype
+    if search_value:
+        values = dataframe[dataframe[column] == search_value][column].value_counts()
+    else:
+        values = dataframe[column].value_counts()
 
-        # Átmeneti DataFrame létrehozása sorszámozással
-        temp_df = pd.DataFrame(values).rename(columns={column: 'Egyedi db'})
-        temp_df.index.name = 'Értékek'
-        temp_df.reset_index(inplace=True)
-        print(f"Egyedi értékek a(z) \033[1m'{column}'\033[0m '\033[4moszlopban\033[0m', (melynek típusa: {column_type}) (összesen: {len(values)} db) (sorok száma: {len(dataframe)})")
-        di(temp_df.head(list_values))
-        #di(temp_df.tail(list_values))
-        print(f"Sorok száma: {len(dataframe)}")
-        print()
+    # Átmeneti DataFrame létrehozása sorszámozással
+    temp_df = pd.DataFrame(values).rename(columns={column: 'Egyedi db'})
+    temp_df.index.name = 'Értékek'
+    temp_df.reset_index(inplace=True)
+    print(f"Egyedi értékek a(z) \033[1m'{column}'\033[0m '\033[4moszlopban\033[0m', (melynek típusa: {column_type}) (összesen: {len(values)} db) (sorok száma: {len(dataframe)})")
+    di(temp_df.head(list_values))
+    #di(temp_df.tail(list_values))
+    print(f"Sorok száma: {len(dataframe)}")
+    print()
 
 # Függvény meghívása alapértelmezett értékkel
 # list_unique_values(df_EFC_CZ_merged)
