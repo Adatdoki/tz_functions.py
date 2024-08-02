@@ -7,6 +7,12 @@ Original file is located at
     https://colab.research.google.com/drive/1GcwBsBAMRkBOAlhJEG_5IivfNzLa_qmk
 """
 
+print(" ############### ADATDOKI függvényei   ############### ")
+print(" ############### TZ_functions.py       ############### ")
+print(" ############### version = 2024.08.02. ############### ")
+
+################################################################################################################################################################
+
 # di() = teljes szélességű, nem sortört táblázat új függvénnyel
 
 from IPython.display import display, HTML
@@ -23,44 +29,59 @@ def di(pr):
 # Példa használat:
 # di(df)  # df-nek helyettesítsd be a valós DataFrame-edet
 
+################################################################################################################################################################
 
-# 240502 li() = struktúrált listázó függvény, bővítve alapértelmezettel, teljes szélességű, nem sortört táblázat, sorszám inputtal.************ ADATDOKI ***************
+# 240510 li() = struktúrált listázó függvény, bővítve alapértelmezettel, teljes szélességű, nem sortört táblázat, sorszám inputtal.************ ADATDOKI ***************
 # módosított kód, amely a bemenet bekérését és kiértékelését kihagyja, ha van beállított alapértelmezett érték.
 # az alapértelmezett sor beállítható az"enter" változóval, pl. "enter=4" vagy "del enter"
+# első paramétere kötelező a "dataframe", második opcionális (az adott futtatásban kiírandó sorok száma, ha -1 akkor az összes sor)
 
 import pandas as pd
 from IPython.display import display, HTML
 
-enter = input("Legyen alapértelmezett sorok száma? 0 = ne legyen, azaz listázáskor rákérdez. Vagy szám = ennyi sort listáz rákérdezés nélkül. ")
-
-if enter == '0':
+try:
     del enter
-elif not enter.isdigit():
-    print("Érvénytelen bemenet!")
-    enter = None
-else:
-    enter = int(enter)
+    enter  # Ellenőrizzük, hogy az enter változó létezik-e
+except NameError:
+    # Az enter változó létrehozása és alapértelmezett értékének beállítása
+    print("A li() függvény listázásnál, legyen alapértelmezett a sorok száma?")
+    enter_input = input(' 0 = ne legyen, azaz listázáskor rákérdez. Vagy szám = ennyi sort listáz rákérdezés nélkül. ("enter" változó)')
+    if enter_input == '0':
+        enter = None
+    elif enter_input.isdigit():
+        enter = int(enter_input)
+    else:
+        print("Érvénytelen bemenet!")
+        enter = None
 
-def list_unique_values(df):
-    try:
-        default_rows = enter  # Az alapértelmezett sorok száma
-        display(HTML(df.head(default_rows).to_html()))
-    except NameError:
-        try:
-            bemenet = input("Kérem, adja meg a bemenetet (0 = továbblép azaz nem listáz, ENTER = alapértelmezett számú, vagy hiányában minden sort listáz): ")
-            if bemenet == '0':
-                return
-            elif bemenet == '':
-                display(HTML(df.to_html()))  # Teljes DataFrame listázása
-            elif bemenet.isdigit():
-                display(HTML(df.head(int(bemenet)).to_html()))
-            else:
-                print("Érvénytelen bemenet!")
-        except NameError:
-            print("Hiba: Hiányzó 'enter' változó.")
+def li(df, rows=None):
+    
+	# Az rows paraméter használata, ha meg van adva
+    if rows is not None:
+        if rows == -1:
+            display(HTML(df.to_html(index=True)))
+            print("használat: li(df)  # Használja az 'enter' változó értékét ha létezik és nagyobb mint 0, különben az összes sort megjeleníti vagy li(df, -1)")
+        else:
+            try:
+                # Próbáljuk meg értelmezni, hogy rows szám-e
+                display_rows = int(rows)
+                display(HTML(df.head(display_rows).to_html(index=True)))
+                print("használat: li(df)  # Használja az 'enter' változó értékét ha létezik és nagyobb mint 0, különben az összes sort megjeleníti vagy li(df, -1)")
+            except ValueError:
+                print("A 'rows' paraméternek '*' vagy egy pozitív egész számnak kell lennie.")
+                print("használat: li(df)  # Használja az 'enter' változó értékét ha létezik és nagyobb mint 0, különben az összes sort megjeleníti vagy li(df, -1)")
+    elif enter and enter > 0:  # Ellenőrizzük, hogy az enter értéke nagyobb-e mint 0
+        display(HTML(df.head(enter).to_html(index=True)))
+        print("használat: li(df)  # Használja az 'enter' változó értékét ha létezik és nagyobb mint 0, különben az összes sort megjeleníti vagy li(df, -1)")
+    else:
+        display(HTML(df.to_html(index=True)))  # Alapértelmezett vagy összes sor listázása
+        print("használat: li(df)  # Használja az 'enter' változó értékét ha létezik és nagyobb mint 0, különben az összes sort megjeleníti vagy li(df, -1)")
 
 # Példa használat:
 # li(dataframe) dataframe-nek helyettesítsd be a valós DataFrame-edet
+# df = pd.DataFrame({'A': range(1, 6), 'B': range(6, 11)})
+# li(df)  # Használja az "enter" értékét ha létezik és nagyobb mint 0, különben az összes sort megjeleníti
+# li(df, 2)  # Csak 2 sort jelenít meg a DataFrame-ből
 
 # 240507 *********TZ*********** kilistázza az egyedi értékeket *************ADATDOKI***************
 # mind a szöveges, mind a numerikus oszlopokban megszámolja az egyedi értékeket DI kiírással,
@@ -71,34 +92,39 @@ def list_unique_values(df):
 # list_unique_values(df_EFC_CZ_merged, list_values=3, columns=['chng', 'chng_1'], dtype="object", search_value="valami")
 # minden egyes oszlop mellett ki lesz írva az oszlop típusa is.
 
+################################################################################################################################################################
+
 import numpy as np
 
-#def list_unique_values(dataframe, list_values=10, columns=None, dtype="all", search_value=None):
-if columns is None:
-    columns = dataframe.columns.tolist()
+def list_unique_values(dataframe, list_values=10, columns=None, dtype="all", search_value=None):
+    if columns is None:
+        columns = sorted(dataframe.columns.tolist())  # Az oszlopok rendezése növekvő sorrendben
 
-for column in columns:
-    print('PARAMÉTEREZÉS: luv(dataframe, list_values=10, columns=["column1", "column2", ...], dtype="all/object/int64/float64/datetime64", search_value="valami")  = list_unique_values(dataframe)')
-    if dtype == "numeric" and not np.issubdtype(dataframe[column].dtype, np.number):
-        continue
-    elif dtype == "object" and not np.issubdtype(dataframe[column].dtype, object):
-        continue
+    for column in columns:
+        print('PARAMÉTEREZÉS: luv(dataframe, list_values=10, columns=["column1", "column2", ...], dtype="all/object/int64/float64/datetime64", search_value="valami")  = list_unique_values(dataframe)')
+        if dtype == "numeric" and not np.issubdtype(dataframe[column].dtype, np.number):
+            continue
+        elif dtype == "object" and not np.issubdtype(dataframe[column].dtype, object):
+            continue
 
-    column_type = dataframe[column].dtype
-    if search_value:
-        values = dataframe[dataframe[column] == search_value][column].value_counts()
-    else:
-        values = dataframe[column].value_counts()
+        column_type = dataframe[column].dtype
+        if search_value:
+            values = dataframe[dataframe[column] == search_value][column].value_counts()
+        else:
+            values = dataframe[column].value_counts()
 
-    # Átmeneti DataFrame létrehozása sorszámozással
-    temp_df = pd.DataFrame(values).rename(columns={column: 'Egyedi db'})
-    temp_df.index.name = 'Értékek'
-    temp_df.reset_index(inplace=True)
-    print(f"Egyedi értékek a(z) \033[1m'{column}'\033[0m '\033[4moszlopban\033[0m', (melynek típusa: {column_type}) (összesen: {len(values)} db) (sorok száma: {len(dataframe)})")
-    di(temp_df.head(list_values))
-    #di(temp_df.tail(list_values))
-    print(f"Sorok száma: {len(dataframe)}")
-    print()
+        # Értékek rendezése növekvő sorrendben
+        values_sorted = values.sort_index()
+
+        # Átmeneti DataFrame létrehozása sorszámozással
+        temp_df = pd.DataFrame(values_sorted).rename(columns={column: 'Egyedi db'})
+        temp_df.index.name = 'Értékek'
+        temp_df.reset_index(inplace=True)
+        print(f"Egyedi értékek a(z) \033[1m'{column}'\033[0m '\033[4moszlopban\033[0m', (melynek típusa: {column_type}) (összesen: {len(values)} db) (sorok száma: {len(dataframe)})")
+        di(temp_df.head(list_values))
+        #di(temp_df.tail(list_values))
+        print(f"Sorok száma: {len(dataframe)}")
+        print()
 
 # Függvény meghívása alapértelmezett értékkel
 # list_unique_values(df_EFC_CZ_merged)
@@ -120,7 +146,7 @@ for column in columns:
 def luv(dataframe, list_values=10, columns=None, dtype="all", search_value=None):
     list_unique_values(dataframe, list_values, columns, dtype, search_value)
 
-
+################################################################################################################################################################
 
 """
 240505
@@ -171,6 +197,7 @@ def plot_histograms(dataframe_name):
 #plot_histograms("df")
 #print(df)
 
+################################################################################################################################################################
 
 import numpy as np  # NumPy importálása
 from scipy import stats  # Scipy importálása a statisztikai műveletekhez
@@ -234,3 +261,219 @@ def numeric_column_summary_statistics(df):
     display(statistics)
 
 # numeric_column_summary_statistics(df)
+
+################################################################################################################################################################
+
+# 240510 *********TZ*********** egy dataframe adatainak táblázatos statisztikája *************ADATDOKI***************
+"""
+Kifejezés            | Leírás
+---------------------|-----------------------------------------------------
+Dtype                | Az oszlop adattípusa.
+count                | Az oszlopban lévő nem NaN értékek száma.
+unique               | Az oszlopban lévő egyedi értékek száma.
+top                  | Az oszlopban leggyakrabban előforduló érték.
+freq                 | Az oszlopban leggyakrabban előforduló érték gyakorisága.
+mean                 | Az oszlopban lévő értékek átlaga.
+std                  | Az oszlopban lévő értékek szórása.
+min                  | Az oszlop legkisebb értéke.
+25%                  | Az oszlop alsó kvartilise (25%-os percentilis).
+50%                  | Az oszlop mediánja (50%-os percentilis).
+75%                  | Az oszlop felső kvartilise (75%-os percentilis).
+max                  | Az oszlop legnagyobb értéke.
+first                | Az oszlopban az első nem NaN érték.
+last                 | Az oszlopban az utolsó nem NaN érték.
+NaN_count            | Az oszlopban lévő NaN értékek száma.
+unique_top           | Az oszlopban lévő egyedi értékek közül a leggyakoribb.
+unique_top_count     | Az oszlopban lévő egyedi értékek közül a leggyakoribb érték előfordulásainak száma.
+
+"""
+
+def dinfo(df): # display_dataframe_info
+    #print("DataFrame tulajdonságai:")
+    #print(df.info())
+
+    print("\nDataFrame oszlopainak statisztikái:")
+    statistics_df = df.describe(include='all').T
+    statistics_df['first'] = df.iloc[0]
+    statistics_df['last'] = df.iloc[-1]
+    
+    # NaN értékek számolása
+    statistics_df['NaN_count'] = df.isnull().sum()
+
+    # Leggyakoribb egyedi érték
+    unique_top_values = df.apply(lambda x: x.value_counts().index[0])
+    statistics_df['unique_top'] = unique_top_values
+
+    # Leggyakoribb egyedi érték darabszáma
+    unique_top_counts = df.apply(lambda x: x.value_counts().max())
+    statistics_df['unique_top_count'] = unique_top_counts
+
+    # Oszlopok típusának hozzáadása
+    statistics_df.insert(1, 'Dtype', df.dtypes)
+
+    # Oszlopok típusának hozzáadása és új sorrend
+    statistics_df.insert(0, '#', range(1, len(statistics_df) + 1))
+    statistics_df = statistics_df[['#', 'Dtype', 'count', 'unique', 'top', 'freq', 'mean', 'std', 'min', '25%', '50%', '75%', 'max', 'first', 'last', 'NaN_count', 'unique_top', 'unique_top_count']]
+
+    di(statistics_df)
+
+    return
+
+# használat:
+# dinfo(df)
+
+################################################################################################################################################################
+
+# 240507 *********TZ*********** datainfo *************ADATDOKI***************
+# kilistázza a dataframe tulajdonságait
+databases = ["default_dataframe"]  # Alapértelmezett DataFrame
+#functions = [".info()", ".describe()", ".head()", "", ".dtypes"]
+functions = [".info()", ".describe()", "",]
+
+def datainfo(dataframe=None):
+    if dataframe is None:
+        dataframe = databases[0]
+
+    for f in functions:
+        command = dataframe + f
+        print("\n==>", command)
+        output = eval(command)
+        print(output)
+
+# Használat: datainfo() vagy datainfo("custom_dataframe")
+
+###################################################################################################################################################
+
+import numpy as np  # NumPy importálása
+from scipy import stats  # Scipy importálása a statisztikai műveletekhez
+
+def numeric_column_summary_statistics(df):
+    # Az összes oszlop fejlécének kiválasztása
+    all_columns = df.columns
+
+    # Csak a számot tartalmazó oszlopok kiválasztása
+    numeric_columns = df.select_dtypes(include='number').columns
+
+    # Statisztikák kiszámolása minden oszlopra
+    statistics = pd.DataFrame(index=['Min', 'Max', 'Átlag', 'Medián', 'Modusz', 'Variabilitás', 'Alsó Kvantil', 'Felső Kvantil',
+                                     'Korreláció', 'Kovariancia', 'Százalékos Változás', 'Konfidencia-intervallumok',
+                                     'Lineáris Regresszió Együtthatók'], columns=all_columns)
+
+    for column in all_columns:
+        if column in numeric_columns:
+            statistics.at['Min', column] = df[column].min()
+            statistics.at['Max', column] = df[column].max()
+            statistics.at['Átlag', column] = df[column].mean()
+            statistics.at['Medián', column] = df[column].median()
+            statistics.at['Modusz', column] = df[column].mode().iloc[0]  # Modusz számítása
+            statistics.at['Variabilitás', column] = df[column].std()  # Szórás
+            statistics.at['Alsó Kvantil', column] = df[column].quantile(0.25)  # Alsó kvantil
+            statistics.at['Felső Kvantil', column] = df[column].quantile(0.75)  # Felső kvantil
+            # Korreláció és kovariancia kiszámítása a többi oszloppal
+            for other_column in numeric_columns:
+                if other_column != column:
+                    statistics.at['Korreláció', column] = df[column].corr(df[other_column])
+                    statistics.at['Kovariancia', column] = df[column].cov(df[other_column])
+            # Százalékos változás számítása
+            first_value = df[column].iloc[0]
+            last_value = df[column].iloc[-1]
+            statistics.at['Százalékos Változás', column] = ((last_value - first_value) / first_value) * 100
+            # Konfidencia-intervallumok
+            confidence_interval = stats.norm.interval(0.95, loc=df[column].mean(), scale=df[column].std())
+            statistics.at['Konfidencia-intervallumok', column] = confidence_interval
+            # Lineáris regresszió együtthatók
+            # Ez csak egy példa, itt valószínűleg több munka és elemzés kellene
+            slope, intercept, r_value, p_value, std_err = stats.linregress(df[column], df['start'])
+            statistics.at['Lineáris Regresszió Együtthatók', column] = (slope, intercept, r_value, p_value, std_err)
+        else:
+            # Nem szám típusú oszlopoknak NaN értékeket adunk
+            statistics.at['Min', column] = np.nan
+            statistics.at['Max', column] = np.nan
+            statistics.at['Átlag', column] = np.nan
+            statistics.at['Medián', column] = np.nan
+            statistics.at['Modusz', column] = np.nan
+            statistics.at['Variabilitás', column] = np.nan
+            statistics.at['Alsó Kvantil', column] = np.nan
+            statistics.at['Felső Kvantil', column] = np.nan
+            statistics.at['Korreláció', column] = np.nan
+            statistics.at['Kovariancia', column] = np.nan
+            statistics.at['Százalékos Változás', column] = np.nan
+            statistics.at['Konfidencia-intervallumok', column] = np.nan
+            statistics.at['Lineáris Regresszió Együtthatók', column] = np.nan
+
+    # Statisztikák kiíratása
+    print("Összefoglaló statisztikák minden oszlopra:")
+    display(statistics)
+
+# numeric_column_summary_statistics(df)
+
+##############################################################################################################################################
+
+# 240510 Értékek listázása választható oszlopokban
+import shutil
+
+def values(dataframe, columns, max_values_per_line=20, sorted=False):
+    for column in columns:
+        # Számként értelmezhető értékek keresése
+        numeric_values = pd.to_numeric(dataframe[column], errors='coerce')
+
+        # Normálalakos számokat keresünk, amelyeket nem tudunk értelmezni
+        non_normal_numeric_values = dataframe[column][~numeric_values.notnull()].unique()
+
+        # Statisztikák numerikus értékekről
+        if len(numeric_values.dropna()) > 0:
+            print(f"Statistics for column '{column}' (numerical values):")
+            print(numeric_values.dropna().describe())
+            print()
+
+        # Egyedi értékek numerikus értékekről
+        unique_numeric_values = numeric_values.dropna().unique()
+        if len(unique_numeric_values) > 0:
+            if sorted:
+                unique_numeric_values.sort()
+            print(f"Unique values in column '{column}' (numerical values):")
+            terminal_width = shutil.get_terminal_size().columns
+            values_per_line = min(max_values_per_line, terminal_width // 7)  # 7 is the average width of a float number
+            for i in range(0, len(unique_numeric_values), values_per_line):
+                print("\t".join([f"{value:.2f}" for value in unique_numeric_values[i:i+values_per_line]]))
+            print()
+
+        # Nem numerikus értékek listázása
+        if len(non_normal_numeric_values) > 0:
+            print(f"Non-numeric values in column '{column}':")
+            if sorted:
+                print(", ".join(map(str, non_normal_numeric_values)))
+            else:
+                print(", ".join(sorted(map(str, non_normal_numeric_values))))
+            print()
+			
+# Függvény meghívása az adott DataFrame és oszlop nevével
+# values(df_EFC_CZ_merged, ('sorsz', 'Division', 'when', 'who', 'with_who', 'total_time', 'W/L/T', 'Hurdles', 'name', 'start', '1_dog', 'name_1', 'chng', '2_dog', 'name_2', 'chng_1', '3_dog', 'name_3', 'chng_2', '4_dog', 'event_place', 'when_date', 'when_time', 'track'), max_values_per_line=25, sorted=True)
+# values(df_EFC_CZ_merged, ('start', 'chng', 'chng_1', 'chng_2'), sorted=True)
+
+##############################################################################################################################################
+
+#240331 mind a szöveges, mind a numerikus oszlopokban megszámolja az egyedi értékeket DI kiírással, beállítható megjelenítési számmal, csak 1 oszlop lehetőséggel is
+def list_unique_values_240331(dataframe, list_values=10, columns=None):
+    if columns is None:
+        columns = dataframe.columns.tolist()
+
+    for column in columns:
+        values = dataframe[column].value_counts()
+        # Átmeneti DataFrame létrehozása sorszámozással
+        temp_df = pd.DataFrame(values).rename(columns={column: 'Egyedi db'})
+        temp_df.index.name = 'Értékek'
+        temp_df.reset_index(inplace=True)
+        print(f"Egyedi értékek a(z) '{column}' oszlopban (összesen: {len(values)} db):")
+        di(temp_df.head(list_values))
+        di(temp_df.tail(list_values))
+        print()
+
+# Függvény meghívása alapértelmezett értékkel
+#list_unique_values(df_EFC_CZ_merged)
+
+# Függvény meghívása második és harmadik paraméter megadásával
+# list_unique_values_240331(df_EFC_CZ_merged, list_values=5, columns=['name', 'start'])  # Például az utolsó 5 érték megjelenítése a "name" és "start" oszlopokban
+# list_unique_values_240331(df_EFC_CZ_merged, list_values=25, columns=['start', 'chng', 'chng_1', 'chng_2'])
+
+##############################################################################################################################################
