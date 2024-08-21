@@ -148,8 +148,8 @@ def luv(dataframe, list_values=10, columns=None, dtype="all", search_value=None)
 
 ################################################################################################################################################################
 
+# plot_histograms 240821
 """
-240505
 Ebben a kódban a plot_histograms függvényt definiáljuk, amely paraméterként várja a DataFrame nevét (dataframe_name).
 A függvény megpróbálja betölteni a megadott DataFrame-et, és ha nem találja, hibát kezel.
 Az iteráció és hisztogram kirajzolás része ugyanaz maradt. Most példa használatként megadhatod a DataFrame nevét a plot_histograms függvényben.
@@ -158,44 +158,40 @@ majd ezeket használtam a `bins` paraméterek megfelelő számának kiszámítá
 `bin_width` értéke az adott oszlop MAX-MIN értékeinek megadott %-ától függ
 """
 
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 
-def plot_histograms(dataframe_name):
+def plot_histograms(df):
     try:
-        # Betöltjük a DataFrame-et a megadott név alapján
-        df = globals()[dataframe_name]
-
-        print("ilyen oszlopaink vannak: (csak a numerikusokról hisztogram)")
+        print("Ilyen oszlopaink vannak: (csak a numerikusokról hisztogram)")
         df.info()
 
         # Iteráció az oszlopokon és hisztogramok kirajzolása
         for column in df.columns:
-            # Csak numerikus oszlopokat veszünk figyelembe (elhagyjuk a nem numerikusakat)
             if pd.api.types.is_numeric_dtype(df[column]):
-                # Számold ki a MAX és MIN értékek különbségének megadott %-át
-                bin_width = 0.01 * (df[column].max() - df[column].min())
-                # Készíts egyedi ábrát minden oszlophoz
-                plt.figure(figsize=(8, 6))
+                # Szűrjük ki a NaN értékeket
+                col_data = df[column].dropna()
 
-                # Készíts hisztogramot a számolt bin-szélességgel
-                plt.hist(df[column], bins=int((df[column].max() - df[column].min()) / bin_width),
-                         color='blue', edgecolor='black', alpha=0.5)
+                # Ellenőrizzük, hogy van-e legalább két különböző érték
+                if col_data.nunique() > 1:
+                    bin_width = 0.01 * (col_data.max() - col_data.min())
+                    bins = int((col_data.max() - col_data.min()) / bin_width)
 
-                # Ábra címe és tengelyfeliratai
-                plt.title(f'Histogram of {column} in {dataframe_name}')
-                plt.xlabel(column)
-                plt.ylabel('Frequency')
-
-                # Minden egyes oszlop ábrát külön mutasd be
-                plt.show()
+                    plt.figure(figsize=(8, 6))
+                    plt.hist(col_data, bins=bins, color='blue', edgecolor='black', alpha=0.5)
+                    plt.title(f'Histogram of {column}')
+                    plt.xlabel(column)
+                    plt.ylabel('Frequency')
+                    plt.show()
+                else:
+                    print(f"Az '{column}' oszlopban nincs elegendő változatosság a hisztogram készítéséhez.")
 
     except KeyError:
-        print(f"Error: DataFrame with name '{dataframe_name}' not found.")
+        print(f"Hiba: '{dataframe_name}' nevű DataFrame nem található.")
 
 # Példa használat:
-#plot_histograms("df")
-#print(df)
+# plot_histograms(df)
+
 
 ################################################################################################################################################################
 
