@@ -652,3 +652,59 @@ def colstat(df):
 
 ###########################################################################################################################
 
+# 240821 színezett_korrelácios_mátrix
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+def korrelacios_matrix(df):
+    """
+    Létrehoz egy korrelációs mátrixot a DataFrame oszlopai között.
+    
+    Paraméter:
+    df : pd.DataFrame
+        A bemeneti adatkeret.
+    
+    Visszatérési érték:
+    pd.DataFrame : A korrelációs mátrix.
+    """
+    # Véletlen oszlop generálása
+    df['veletlen_oszlop'] = np.random.randn(len(df))
+    
+    # Korrelációs mátrix számítása
+    corr_matrix = df.corr()
+    
+    return corr_matrix
+
+def szinezett_korrelacios_matrix(df):
+    """
+    Megjeleníti a korrelációs mátrixot színezett hőtérképként szélesebb cellákkal és 5 tizedesjeggyel.
+    
+    Paraméter:
+    df : pd.DataFrame
+        A bemeneti adatkeret.
+    """
+    # Korrelációs mátrix létrehozása
+    corr_matrix = korrelacios_matrix(df)
+    
+    # Hőtérkép megjelenítése szélesebb cellákkal és 5 tizedesjeggyel
+    plt.figure(figsize=(21, 8))  # Növeljük a cellák szélességét a figsize paraméterrel
+    sns.heatmap(
+        corr_matrix, 
+        annot=True, 
+        cmap='coolwarm', 
+        vmin=-1, 
+        vmax=1, 
+        center=0, 
+        fmt=".5f",  # Formázzuk az annotációkat 5 tizedesjegyre
+        annot_kws={"size": 10}  # Beállíthatjuk a betűméretet is, ha szükséges
+    )
+    plt.title('Korrelációs mátrix hőtérképe')
+    plt.show()
+
+# Példafelhasználás:
+# df = pd.read_csv("adatok.csv")
+# szinezett_korrelacios_matrix(df)
+
+#############################################################################################################################
