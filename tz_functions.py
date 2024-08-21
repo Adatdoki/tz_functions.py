@@ -557,3 +557,98 @@ def Pearson_osszes_oszlop_vizsgalata(df):
 
 #############################################################################################################################################
 
+# 240821 ColStat, Column statisztika
+import numpy as np
+import pandas as pd
+import scipy.stats as stats
+
+def egy_oszlop_vizsgalata(df, oszlop, folytonos_kuszob=20, min_kulonbseg_kuszob=0.01):
+    """
+    Egy adott oszlop vizsgálata a Pearson-féle korrelációs együttható feltételeinek szempontjából.
+    
+    Paraméterek:
+    df : pd.DataFrame
+        Az adatokat tartalmazó DataFrame.
+    oszlop : str
+        A vizsgálandó oszlop neve.
+    folytonos_kuszob : int
+        Az egyedi értékek számának küszöbe, amely felett folytonosnak tekintjük a változót.
+    min_kulonbseg_kuszob : float
+        Az értékek közötti minimális különbség küszöbe, amely alatt a változót folytonosnak tekintjük.
+    
+    Visszatérési érték:
+    dict : Az ellenőrzési eredmények szótára.
+    """
+    eredmenyek = {
+        'numerikus_valtozok': False,
+        'normal_eloszlas_x': False,
+        'folytonos_valtozo_x_ertekszam': False,
+        'folytonos_valtozo_x_kulonbseg': False,
+        'folytonos_x': False
+    }
+    
+    try:
+        # 1. Numerikus változók ellenőrzése
+        if pd.api.types.is_numeric_dtype(df[oszlop]):
+            eredmenyek['numerikus_valtozok'] = True
+
+            # 2. Normál eloszlás ellenőrzése (Shapiro-Wilk teszt)
+            _, p_x = stats.shapiro(df[oszlop].dropna())
+
+            # A Shapiro-Wilk teszt p-értéke alapján döntsünk: ha p > 0.05, akkor normális eloszlású
+            eredmenyek['normal_eloszlas_x'] = p_x > 0.05
+
+            # 3. Folytonos változók ellenőrzése
+
+            # 3.1 Egyedi értékek számának vizsgálata
+            egyedi_ertekek_x = df[oszlop].nunique()
+            eredmenyek['folytonos_valtozo_x_ertekszam'] = egyedi_ertekek_x > folytonos_kuszob
+
+            # 3.2 Értékek közötti különbségek vizsgálata
+            kulonbsegek_x = np.diff(np.sort(df[oszlop].dropna().unique()))
+            min_kulonbseg_x = np.min(kulonbsegek_x) if len(kulonbsegek_x) > 0 else np.inf
+            eredmenyek['folytonos_valtozo_x_kulonbseg'] = min_kulonbseg_x < min_kulonbseg_kuszob
+
+            # A két kritérium kombinálásával megállapítjuk, hogy folytonos-e a változó
+            eredmenyek['folytonos_x'] = (eredmenyek['folytonos_valtozo_x_ertekszam'] and eredmenyek['folytonos_valtozo_x_kulonbseg'])
+
+    except Exception as e:
+        # Hibakezelés: Ha valami hiba történik, rögzítjük az üzenetet
+        eredmenyek['hiba'] = str(e)
+
+    return eredmenyek
+
+def colstat(df):
+    """
+    A DataFrame összes oszlopán végigiterál, megvizsgálja őket, és egy jelentés formájában kiírja az eredményeket.
+    
+    Paraméter:
+    df : pd.DataFrame
+        Az elemzendő adatkeret.
+    
+    Kimenet:
+    pd.DataFrame : A jelentés, amely tartalmazza minden oszlop vizsgálatának eredményeit.
+    """
+    jelentés = []
+    
+    for oszlop in df.columns:
+        eredmeny = egy_oszlop_vizsgalata(df, oszlop)
+        sor = {
+            'Column': oszlop,
+            'Non-Null Count': df[oszlop].count(),
+            'Dtype': df[oszlop].dtype,
+        }
+        sor.update(eredmeny)
+        jelentés.append(sor)
+    
+    jelentés_df = pd.DataFrame(jelentés)
+    return jelentés_df
+
+# Példafelhasználás:
+# df = pd.read_csv("adatok.csv")
+# jelentés = colstat(df)
+# print(jelentés)
+# di(jelentés) ez struktúráltabb
+
+###########################################################################################################################
+
