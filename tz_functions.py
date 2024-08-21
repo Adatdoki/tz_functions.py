@@ -584,7 +584,8 @@ def egy_oszlop_vizsgalata(df, oszlop, folytonos_kuszob=20, min_kulonbseg_kuszob=
         'normal_eloszlas_x': False,
         'folytonos_valtozo_x_ertekszam': False,
         'folytonos_valtozo_x_kulonbseg': False,
-        'folytonos_x': False
+        'folytonos_x': False,
+        'hiba': np.nan  # Eredetileg nincs hiba
     }
     
     try:
@@ -594,9 +595,7 @@ def egy_oszlop_vizsgalata(df, oszlop, folytonos_kuszob=20, min_kulonbseg_kuszob=
 
             # 2. Normál eloszlás ellenőrzése (Shapiro-Wilk teszt)
             _, p_x = stats.shapiro(df[oszlop].dropna())
-
-            # A Shapiro-Wilk teszt p-értéke alapján döntsünk: ha p > 0.05, akkor normális eloszlású
-            eredmenyek['normal_eloszlas_x'] = p_x > 0.05
+            eredmenyek['normal_eloszlas_x'] = p_x > 0.05  # Ha p > 0.05, akkor normál eloszlású
 
             # 3. Folytonos változók ellenőrzése
 
@@ -609,8 +608,8 @@ def egy_oszlop_vizsgalata(df, oszlop, folytonos_kuszob=20, min_kulonbseg_kuszob=
             min_kulonbseg_x = np.min(kulonbsegek_x) if len(kulonbsegek_x) > 0 else np.inf
             eredmenyek['folytonos_valtozo_x_kulonbseg'] = min_kulonbseg_x < min_kulonbseg_kuszob
 
-            # A két kritérium kombinálásával megállapítjuk, hogy folytonos-e a változó
-            eredmenyek['folytonos_x'] = (eredmenyek['folytonos_valtozo_x_ertekszam'] and eredmenyek['folytonos_valtozo_x_kulonbseg'])
+            # Kombinált kritérium alapján folytonosság ellenőrzése
+            eredmenyek['folytonos_x'] = eredmenyek['folytonos_valtozo_x_ertekszam'] and eredmenyek['folytonos_valtozo_x_kulonbseg']
 
     except Exception as e:
         # Hibakezelés: Ha valami hiba történik, rögzítjük az üzenetet
@@ -629,6 +628,7 @@ def colstat(df):
     Kimenet:
     pd.DataFrame : A jelentés, amely tartalmazza minden oszlop vizsgálatának eredményeit.
     """
+    print("a Dataframe sorainak száma: ", len(df))
     jelentés = []
     
     for oszlop in df.columns:
@@ -636,6 +636,8 @@ def colstat(df):
         sor = {
             'Column': oszlop,
             'Non-Null Count': df[oszlop].count(),
+            'NaN Count': df[oszlop].isna().sum(),
+            'Zero Count': (df[oszlop] == 0).sum().sum(),
             'Dtype': df[oszlop].dtype,
         }
         sor.update(eredmeny)
