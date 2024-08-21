@@ -553,7 +553,7 @@ def Pearson_osszes_oszlop_vizsgalata(df):
 # Példafelhasználás:
 # df = pd.read_csv("adatok.csv")
 # Pearson_osszes_oszlop_vizsgalata(df)
-Pearson_osszes_oszlop_vizsgalata(df)
+
 
 #############################################################################################################################################
 
