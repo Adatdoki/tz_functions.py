@@ -37,6 +37,7 @@ def di(pr):
 # módosított kód, amely a bemenet bekérését és kiértékelését kihagyja, ha van beállított alapértelmezett érték.
 # az alapértelmezett sor beállítható az"enter" változóval, pl. "enter=4" vagy "del enter"
 # első paramétere kötelező a "dataframe", második opcionális (az adott futtatásban kiírandó sorok száma, ha -1 akkor az összes sor)
+# Kiírja az adott pandas DataFrame-et HTML táblázatként, kattintható linkekkel.
 
 import pandas as pd
 from IPython.display import display, HTML
@@ -61,22 +62,22 @@ def li(df, rows=None):
 	# Az rows paraméter használata, ha meg van adva
     if rows is not None:
         if rows == -1:
-            display(HTML(df.to_html(index=True)))
+            display(HTML(df.to_html(escape=False, render_links=True, index=True)))
             print("használat: li(df)  # Használja az 'enter' változó értékét ha létezik és nagyobb mint 0, különben az összes sort megjeleníti vagy li(df, -1)")
         else:
             try:
                 # Próbáljuk meg értelmezni, hogy rows szám-e
                 display_rows = int(rows)
-                display(HTML(df.head(display_rows).to_html(index=True)))
+                display(HTML(df.head(display_rows).to_html(escape=False, render_links=True, index=True)))
                 print("használat: li(df)  # Használja az 'enter' változó értékét ha létezik és nagyobb mint 0, különben az összes sort megjeleníti vagy li(df, -1)")
             except ValueError:
                 print("A 'rows' paraméternek '*' vagy egy pozitív egész számnak kell lennie.")
                 print("használat: li(df)  # Használja az 'enter' változó értékét ha létezik és nagyobb mint 0, különben az összes sort megjeleníti vagy li(df, -1)")
     elif enter and enter > 0:  # Ellenőrizzük, hogy az enter értéke nagyobb-e mint 0
-        display(HTML(df.head(enter).to_html(index=True)))
+        display(HTML(df.head(enter).to_html(escape=False, render_links=True, index=True)))
         print("használat: li(df)  # Használja az 'enter' változó értékét ha létezik és nagyobb mint 0, különben az összes sort megjeleníti vagy li(df, -1)")
     else:
-        display(HTML(df.to_html(index=True)))  # Alapértelmezett vagy összes sor listázása
+        display(HTML(pr.to_html(escape=False, render_links=True, index=True)))  # Alapértelmezett vagy összes sor listázása
         print("használat: li(df)  # Használja az 'enter' változó értékét ha létezik és nagyobb mint 0, különben az összes sort megjeleníti vagy li(df, -1)")
 
 # Példa használat:
