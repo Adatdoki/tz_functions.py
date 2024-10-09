@@ -19,15 +19,17 @@ from IPython.display import display, HTML
 
 def di(pr):
     """
-    Kiírja az adott pandas DataFrame-et HTML táblázatként.
+    Kiírja az adott pandas DataFrame-et HTML táblázatként, kattintható linkekkel.
 
     Parameters:
     - pr: pandas DataFrame
     """
-    display(HTML(pr.to_html()))
+    # HTML táblázat generálása kattintható linkekkel
+    display(HTML(pr.to_html(escape=False, render_links=True)))
 
 # Példa használat:
 # di(df)  # df-nek helyettesítsd be a valós DataFrame-edet
+
 
 ################################################################################################################################################################
 
