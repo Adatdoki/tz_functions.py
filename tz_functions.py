@@ -292,13 +292,18 @@ unique_top_count     | Az oszlopban lévő egyedi értékek közül a leggyakori
 
 """
 
-def dinfo(df): # display_dataframe_info
+def dinfo(df):  # A DataFrame nevét automatikusan kinyerjük
     # Ellenőrizzük, hogy a DataFrame nem üres
     if df.empty:
         print("A DataFrame üres.")
         return
 
-    print("\nDataFrame oszlopainak statisztikái:")
+    # DataFrame név keresése
+    df_name = [name for name, val in globals().items() if val is df][0]
+    
+    print(f"\n{df_name} DataFrame oszlopainak statisztikái:")
+    
+    # Statisztikai adatok kiszámítása (include='all' minden típust tartalmaz)
     statistics_df = df.describe(include='all').T
 
     # Hozzáadjuk az első és utolsó elemet, ha vannak adatok
@@ -319,13 +324,21 @@ def dinfo(df): # display_dataframe_info
     # Oszlopok típusának hozzáadása
     statistics_df.insert(1, 'Dtype', df.dtypes)
 
+    # Ellenőrizzük, hogy a numerikus statisztikák elérhetők-e, és csak azokat adjuk hozzá, ahol valóban léteznek
+    numeric_columns = ['mean', 'std', 'min', '25%', '50%', '75%', 'max']
+    for col in numeric_columns:
+        if col not in statistics_df.columns:
+            statistics_df[col] = None  # Ha nincs meg, None értéket adunk
+
     # Oszlopok típusának hozzáadása és új sorrend
     statistics_df.insert(0, '#', range(1, len(statistics_df) + 1))
     statistics_df = statistics_df[['#', 'Dtype', 'count', 'unique', 'top', 'freq', 'mean', 'std', 'min', '25%', '50%', '75%', 'max', 'first', 'last', 'NaN_count', 'unique_top', 'unique_top_count']]
 
+    # Di() függvényed meghívása a statisztikák megjelenítésére
     di(statistics_df)
 
     return
+
 
 
 # használat:
