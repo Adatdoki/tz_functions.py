@@ -292,24 +292,36 @@ unique_top_count     | Az oszlopban lévő egyedi értékek közül a leggyakori
 
 """
 
-def dinfo(df):  # A DataFrame nevét automatikusan kinyerjük
+import inspect
+
+# Dekorátor függvény létrehozása
+def add_df_name(func):
+    def wrapper(df):
+        # Az aktuális hívási keretet megvizsgáljuk, hogy lekérjük a változó nevét
+        frame = inspect.currentframe().f_back
+        df_name = None
+        
+        # Végigmegyünk a változókon, és megkeressük azt, amelyik a DataFrame-re mutat
+        for name, val in frame.f_locals.items():
+            if val is df:
+                df_name = name
+                break
+        
+        # Ha megtaláltuk a nevet, átadjuk azt a dinfo-nak
+        return func(df, df_name)
+    
+    return wrapper
+
+# A dinfo függvény
+@add_df_name  # Ezzel a dekorátorral "díszítjük" a dinfo-t
+def dinfo(df, df_name):
     # Ellenőrizzük, hogy a DataFrame nem üres
     if df.empty:
-        print("A DataFrame üres.")
+        print(f"A {df_name} DataFrame üres.")
         return
 
-    # DataFrame név keresése a globális névtérben
-    df_name = None
-    for name, val in globals().items():
-        if val is df:
-            df_name = name
-            break
-
-    if df_name is None:
-        df_name = "ismeretlen"  # Ha nem található a név, használjunk egy alapértelmezett nevet
-
     print(f"\n({df_name}) DataFrame oszlopainak statisztikái:")
-
+    
     # Statisztikai adatok kiszámítása (include='all' minden típust tartalmaz)
     statistics_df = df.describe(include='all').T
 
@@ -341,10 +353,11 @@ def dinfo(df):  # A DataFrame nevét automatikusan kinyerjük
     statistics_df.insert(0, '#', range(1, len(statistics_df) + 1))
     statistics_df = statistics_df[['#', 'Dtype', 'count', 'unique', 'top', 'freq', 'mean', 'std', 'min', '25%', '50%', '75%', 'max', 'first', 'last', 'NaN_count', 'unique_top', 'unique_top_count']]
 
-    # Di() függvényed meghívása a statisztikák megjelenítésére
+    # Itt a statisztikák megjelenítése (feltételezem, hogy van egy di() függvényed erre)
     di(statistics_df)
 
     return
+
 
 
 
