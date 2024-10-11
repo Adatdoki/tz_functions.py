@@ -298,11 +298,18 @@ def dinfo(df):  # A DataFrame nevét automatikusan kinyerjük
         print("A DataFrame üres.")
         return
 
-    # DataFrame név keresése
-    df_name = [name for name, val in globals().items() if val is df][0]
-    
-    print(f"\n{df_name} DataFrame oszlopainak statisztikái:")
-    
+    # DataFrame név keresése a globális névtérben
+    df_name = None
+    for name, val in globals().items():
+        if val is df:
+            df_name = name
+            break
+
+    if df_name is None:
+        df_name = "ismeretlen"  # Ha nem található a név, használjunk egy alapértelmezett nevet
+
+    print(f"\n({df_name}) DataFrame oszlopainak statisztikái:")
+
     # Statisztikai adatok kiszámítása (include='all' minden típust tartalmaz)
     statistics_df = df.describe(include='all').T
 
