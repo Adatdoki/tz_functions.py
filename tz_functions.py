@@ -268,7 +268,7 @@ def numeric_column_summary_statistics(df):
 
 ################################################################################################################################################################
 
-# 240510 *********TZ*********** egy dataframe adatainak táblázatos statisztikája *************ADATDOKI***************
+# 241011 *********TZ*********** egy dataframe adatainak táblázatos statisztikája *************ADATDOKI***************
 """
 Kifejezés            | Leírás
 ---------------------|-----------------------------------------------------
@@ -293,23 +293,27 @@ unique_top_count     | Az oszlopban lévő egyedi értékek közül a leggyakori
 """
 
 def dinfo(df): # display_dataframe_info
-    #print("DataFrame tulajdonságai:")
-    #print(df.info())
+    # Ellenőrizzük, hogy a DataFrame nem üres
+    if df.empty:
+        print("A DataFrame üres.")
+        return
 
     print("\nDataFrame oszlopainak statisztikái:")
     statistics_df = df.describe(include='all').T
+
+    # Hozzáadjuk az első és utolsó elemet, ha vannak adatok
     statistics_df['first'] = df.iloc[0]
     statistics_df['last'] = df.iloc[-1]
-    
+
     # NaN értékek számolása
     statistics_df['NaN_count'] = df.isnull().sum()
 
     # Leggyakoribb egyedi érték
-    unique_top_values = df.apply(lambda x: x.value_counts().index[0])
+    unique_top_values = df.apply(lambda x: x.value_counts().index[0] if not x.value_counts().empty else None)
     statistics_df['unique_top'] = unique_top_values
 
     # Leggyakoribb egyedi érték darabszáma
-    unique_top_counts = df.apply(lambda x: x.value_counts().max())
+    unique_top_counts = df.apply(lambda x: x.value_counts().max() if not x.value_counts().empty else None)
     statistics_df['unique_top_count'] = unique_top_counts
 
     # Oszlopok típusának hozzáadása
@@ -322,6 +326,7 @@ def dinfo(df): # display_dataframe_info
     di(statistics_df)
 
     return
+
 
 # használat:
 # dinfo(df)
