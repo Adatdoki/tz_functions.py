@@ -13,6 +13,19 @@ print(" ############### version = 2024.08.02. ############### ")
 
 ################################################################################################################################################################
 
+######### 2024.10.13 14:15:00 ################################## ADATDOKI ######
+# A teljes képernyő szélességű kódmegjelenítést biztosít Jupyter NbClassic-ban.
+# Jupyter NbClassic-ban működik csak (localhost:8888/nbclassic/notebooks/)
+#########1#########2#########3#########4#########5#########6#########7#########8
+
+# Importáljuk a szükséges modulokat az ajánlott IPython.display-ből
+from IPython.display import display, HTML
+
+# Teljes képernyős szélességet biztosít a Jupyter Notebookban
+display(HTML("<style>.container { width:100% !important; }</style>"))
+
+###############################################################################################################################################################
+
 # di() = teljes szélességű, nem sortört táblázat új függvénnyel
 
 from IPython.display import display, HTML
