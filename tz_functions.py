@@ -270,6 +270,7 @@ def numeric_column_summary_statistics(df):
 
 ######### 2024.10.16 09:45:00 ################################## ADATDOKI ######
 # A DataFrame oszlopainak tulajdonságait összegző funkció. Egy dataframe adatainak táblázatos statisztikája.
+# https://chatgpt.com/g/g-1NfAVvTfO-hu-jup-python-mester/c/670f693a-a67c-8005-9ffd-140995861135
 #########1#########2#########3#########4#########5#########6#########7#########8
 """
 Kifejezés            | Leírás
