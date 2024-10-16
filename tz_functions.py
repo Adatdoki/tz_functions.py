@@ -358,7 +358,7 @@ def dinfo(df, df_name):
     statistics_df = statistics_df[['#', 'Dtype', 'count', 'unique', 'top', 'freq', 'mean', 'std', 'min', '25%', '50%', '75%', 'max', 'first', 'last', 'NaN_count', 'unique_top', 'unique_top_count']]
 
     # Itt a statisztikák megjelenítése (feltételezem, hogy van egy di() függvényed erre)
-    # di(statistics_df)
+    di(statistics_df)
 
     return
 
