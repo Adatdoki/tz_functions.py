@@ -268,7 +268,9 @@ def numeric_column_summary_statistics(df):
 
 ################################################################################################################################################################
 
-# 241011 *********TZ*********** egy dataframe adatainak táblázatos statisztikája *************ADATDOKI***************
+######### 2024.10.16 13:45:00 ################################## ADATDOKI ######
+# A DataFrame oszlopainak tulajdonságait összegző funkció. Egy dataframe adatainak táblázatos statisztikája.
+#########1#########2#########3#########4#########5#########6#########7#########8
 """
 Kifejezés            | Leírás
 ---------------------|-----------------------------------------------------
@@ -357,9 +359,6 @@ def dinfo(df, df_name):
     di(statistics_df)
 
     return
-
-
-
 
 # használat:
 # dinfo(df)
