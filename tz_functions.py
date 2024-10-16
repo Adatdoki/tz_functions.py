@@ -268,7 +268,7 @@ def numeric_column_summary_statistics(df):
 
 ################################################################################################################################################################
 
-######### 2024.10.16 13:45:00 ################################## ADATDOKI ######
+######### 2024.10.16 09:45:00 ################################## ADATDOKI ######
 # A DataFrame oszlopainak tulajdonságait összegző funkció. Egy dataframe adatainak táblázatos statisztikája.
 #########1#########2#########3#########4#########5#########6#########7#########8
 """
@@ -322,7 +322,8 @@ def dinfo(df, df_name):
         print(f"A {df_name} DataFrame üres.")
         return
 
-    print(f"\n({df_name}) DataFrame oszlopainak statisztikái:")
+    # Kiírjuk az oszlopok statisztikai jellemzőit és a sorok számát
+    print(f"\n({df_name}) DataFrame oszlopainak statisztikái: {len(df)} sorból áll.")
     
     # Statisztikai adatok kiszámítása (include='all' minden típust tartalmaz)
     statistics_df = df.describe(include='all').T
@@ -356,12 +357,12 @@ def dinfo(df, df_name):
     statistics_df = statistics_df[['#', 'Dtype', 'count', 'unique', 'top', 'freq', 'mean', 'std', 'min', '25%', '50%', '75%', 'max', 'first', 'last', 'NaN_count', 'unique_top', 'unique_top_count']]
 
     # Itt a statisztikák megjelenítése (feltételezem, hogy van egy di() függvényed erre)
-    di(statistics_df)
+    # di(statistics_df)
 
     return
 
 # használat:
-# dinfo(df)
+dinfo(df)
 
 ################################################################################################################################################################
 
