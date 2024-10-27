@@ -268,7 +268,7 @@ def numeric_column_summary_statistics(df):
 
 ################################################################################################################################################################
 
-######### 2024.10.16 09:45:00 ################################## ADATDOKI ######
+######### 2024.10.27 22:58:00 ################################## ADATDOKI ######
 # A DataFrame oszlopainak tulajdonságait összegző funkció. Egy dataframe adatainak táblázatos statisztikája.
 # https://chatgpt.com/g/g-1NfAVvTfO-hu-jup-python-mester/c/670f693a-a67c-8005-9ffd-140995861135
 #########1#########2#########3#########4#########5#########6#########7#########8
@@ -326,12 +326,44 @@ def dinfo(df, df_name):
     # Kiírjuk az oszlopok statisztikai jellemzőit és a sorok számát
     print(f"\n({df_name}) DataFrame oszlopainak statisztikái: {len(df)} sorból áll.")
     
-    # Statisztikai adatok kiszámítása (include='all' minden típust tartalmaz)
-    statistics_df = df.describe(include='all').T
+    # Külön listák a numerikus és nem numerikus oszlopok számára
+    numeric_stats = []
+    non_numeric_stats = []
+
+    # Minden oszlopot külön-külön ellenőrzünk
+    for col in df.columns:
+        try:
+            # Próbálunk numerikus statisztikát kiszámítani az oszlopra
+            col_stats = df[[col]].describe().T  # Ha sikerül, numerikus
+            numeric_stats.append(col_stats)
+        except (ValueError, TypeError):
+            # Ha nem numerikus, akkor csak alap statisztikákat számolunk
+            col_stats = df[[col]].describe(include='all').T
+            non_numeric_stats.append(col_stats)
+
+    # Egyesítjük a numerikus és nem numerikus statisztikákat
+    if numeric_stats:
+        numeric_stats_df = pd.concat(numeric_stats, axis=0)
+    else:
+        numeric_stats_df = pd.DataFrame()
+
+    if non_numeric_stats:
+        non_numeric_stats_df = pd.concat(non_numeric_stats, axis=0)
+    else:
+        non_numeric_stats_df = pd.DataFrame()
+
+    # Összevonjuk a statisztikai adatokat egy DataFrame-be
+    statistics_df = pd.concat([numeric_stats_df, non_numeric_stats_df], axis=0)
+
+    # Ellenőrizzük, hogy minden szükséges oszlop létezik-e, ha nem, akkor hozzáadjuk None értékkel
+    required_columns = ['count', 'unique', 'top', 'freq', 'mean', 'std', 'min', '25%', '50%', '75%', 'max']
+    for col in required_columns:
+        if col not in statistics_df.columns:
+            statistics_df[col] = None
 
     # Hozzáadjuk az első és utolsó elemet, ha vannak adatok
-    statistics_df['first'] = df.iloc[0]
-    statistics_df['last'] = df.iloc[-1]
+    statistics_df['first'] = df.apply(lambda x: x.dropna().iloc[0] if not x.dropna().empty else None)
+    statistics_df['last'] = df.apply(lambda x: x.dropna().iloc[-1] if not x.dropna().empty else None)
 
     # NaN értékek számolása
     statistics_df['NaN_count'] = df.isnull().sum()
@@ -346,12 +378,6 @@ def dinfo(df, df_name):
 
     # Oszlopok típusának hozzáadása
     statistics_df.insert(1, 'Dtype', df.dtypes)
-
-    # Ellenőrizzük, hogy a numerikus statisztikák elérhetők-e, és csak azokat adjuk hozzá, ahol valóban léteznek
-    numeric_columns = ['mean', 'std', 'min', '25%', '50%', '75%', 'max']
-    for col in numeric_columns:
-        if col not in statistics_df.columns:
-            statistics_df[col] = None  # Ha nincs meg, None értéket adunk
 
     # Oszlopok típusának hozzáadása és új sorrend
     statistics_df.insert(0, '#', range(1, len(statistics_df) + 1))
