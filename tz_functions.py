@@ -25,7 +25,7 @@ def di(pr):
     - pr: pandas DataFrame
     """
     # HTML táblázat generálása kattintható linkekkel
-    # display(HTML(pr.to_html(escape=False, render_links=True)))
+    display(HTML(pr.to_html(escape=False, render_links=True)))
 
 # Példa használat:
 # di(df)  # df-nek helyettesítsd be a valós DataFrame-edet
