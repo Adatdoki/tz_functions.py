@@ -48,7 +48,7 @@ try:
 except NameError:
     # Az enter változó létrehozása és alapértelmezett értékének beállítása
     print("A li() függvény listázásnál, legyen alapértelmezett a sorok száma?")
-    enter_input = 10
+    enter_input = '10'
     #enter_input = input(' 0 = ne legyen, azaz listázáskor rákérdez. Vagy szám = ennyi sort listáz rákérdezés nélkül. ("enter" változó)')
     if enter_input == '0':
         enter = None
