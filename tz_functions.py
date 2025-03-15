@@ -790,5 +790,5 @@ from IPython.display import display, HTML
 
 # Teljes képernyős szélességet biztosít a Jupyter Notebookban
 # display(HTML("<style>.container { width:100% !important; }</style>"))
-print('display(HTML("<style>.container { width:100% !important; }</style>"))')
+# print('display(HTML("<style>.container { width:100% !important; }</style>"))')
 ###############################################################################################################################################################
