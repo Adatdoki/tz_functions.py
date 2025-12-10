@@ -9,7 +9,44 @@ Original file is located at
 
 print(" ############### ADATDOKI függvényei   ############### ")
 print(" ############### TZ_functions.py       ############### ")
-print(" ############### version = 2025.03.15. ############### ")
+print(" ############### version = 2025.12.10. ############### ")
+
+###### 2025.12.10. 11:36 #######################################################################################################################################
+
+def qdi(df, **kwargs):
+    """
+    Még egyszerűbb query - kulcs=érték párokkal.
+    
+    Használat:
+    qlist2(df, leltsz="info_0818", beszar=13050)
+    """
+    
+    if not kwargs:
+        print("❌ Nincsenek feltételek megadva!")
+        return df
+    
+    conditions = []
+    for column, value in kwargs.items():
+        # Dátum/string kezelés
+        if isinstance(value, str):
+            if ' ' in value or '-' in value or ':' in value:  # Dátum/szöveg
+                conditions.append(f'{column} == "{value}"')
+            else:
+                conditions.append(f'{column} == "{value}"')
+        else:  # Szám
+            conditions.append(f'{column} == {value}')
+    
+    query_string = ' and '.join(conditions)
+    print(f"🔍 Query: {query_string}")
+    
+    try:
+        result = df.query(query_string)
+        print(f"✅ Találatok: {len(result)} sor")
+        return result
+    except Exception as e:
+        print(f"❌ Hiba: {e}")
+        display(pd.DataFrame())
+        return pd.DataFrame()
 
 ################################################################################################################################################################
 
