@@ -11,6 +11,261 @@ print(" ############### ADATDOKI függvényei   ############### ")
 print(" ############### TZ_functions.py       ############### ")
 print(" ############### version = 2025.12.10. ############### ")
 
+###### 2025.12.11. 10:36 #######################################################################################################################################
+
+# ==============================================================================
+# GPT Helper Modul v3.7 – GPT-5 kompatibilis tokenkezeléssel, fallbackkel
+# Készítette: Adatdoki | 2025-12-03
+# ==============================================================================
+
+import os
+import json
+import httpx
+import unicodedata
+import inspect
+from datetime import datetime, timezone
+from openai import OpenAI
+
+# ======= KONFIG =======
+USD_TO_HUF = 365.0
+COST_LOG_FILE = "cost_log.json"
+DISPLAY_COST_DEFAULT = True
+
+MODEL_PRICES = {
+    "gpt-5-mini":   {"prompt": 0.0002,  "completion": 0.0008},
+    "gpt-5-turbo":  {"prompt": 0.0020,  "completion": 0.0060},
+    "gpt-5":        {"prompt": 0.0100,  "completion": 0.0300},
+
+    "gpt-4o":       {"prompt": 0.0050,  "completion": 0.0150},
+    "gpt-4o-mini":  {"prompt": 0.00015, "completion": 0.0006},
+
+    "gpt-3.5-turbo": {"prompt": 0.0005, "completion": 0.0015},
+}
+
+# ==============================================================================
+# ASCII védelem
+# ==============================================================================
+
+def _to_ascii(x):
+    """ASCII-normalizált biztonságos fejlécgenerálás."""
+    if isinstance(x, bytes):
+        try:
+            x.decode("ascii")
+            return x
+        except UnicodeDecodeError:
+            x = x.decode("utf-8", "ignore")
+    x = str(x)
+    return unicodedata.normalize("NFKD", x).encode("ascii", "ignore").decode("ascii")
+
+# ==============================================================================
+# OpenAI kliens (ASCII-safe)
+# ==============================================================================
+
+def make_openai_ascii_safe_client(api_key=None):
+    if api_key:
+        os.environ["OPENAI_API_KEY"] = api_key
+
+    def on_request(request):
+        for k, v in list(request.headers.items()):
+            request.headers[k] = _to_ascii(v)
+
+    http_client = httpx.Client(event_hooks={"request": [on_request]})
+    return OpenAI(http_client=http_client)
+
+
+# ==============================================================================
+# Költségnapló
+# ==============================================================================
+
+COST_LOG = []
+if os.path.exists(COST_LOG_FILE):
+    try:
+        with open(COST_LOG_FILE, "r", encoding="utf-8") as f:
+            COST_LOG = json.load(f)
+    except:
+        COST_LOG = []
+
+session_start = len(COST_LOG)
+
+def track_gpt_cost(response, model_name, display=True):
+    try:
+        usage = response.usage
+        price = MODEL_PRICES.get(model_name, MODEL_PRICES["gpt-4o"])
+
+        cost_usd = (
+            usage.prompt_tokens / 1000 * price["prompt"]
+            + usage.completion_tokens / 1000 * price["completion"]
+        )
+        cost_huf = cost_usd * USD_TO_HUF
+
+        entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "model": model_name,
+            "prompt_tokens": usage.prompt_tokens,
+            "completion_tokens": usage.completion_tokens,
+            "total_tokens": usage.total_tokens,
+            "cost_usd": round(cost_usd, 6),
+            "cost_huf": round(cost_huf, 2),
+            "caller": inspect.currentframe().f_back.f_code.co_name,
+        }
+
+        COST_LOG.append(entry)
+        with open(COST_LOG_FILE, "w", encoding="utf-8") as f:
+            json.dump(COST_LOG, f, indent=2, ensure_ascii=False)
+
+        if display:
+            print(
+                f"💰 {model_name}: {usage.total_tokens} tok | "
+                f"{cost_usd:.6f} USD ≈ {cost_huf:.2f} Ft"
+            )
+
+        return cost_usd, cost_huf
+
+    except Exception as e:
+        if display:
+            print(f"⚠️ Költség naplózási hiba: {e}")
+        return 0.0, 0.0
+
+
+def summarize_gpt_cost(display=True):
+    session = COST_LOG[session_start:]
+    session_usd = sum(e.get("cost_usd", 0) for e in session)
+    total_usd = sum(e.get("cost_usd", 0) for e in COST_LOG)
+
+    summary = {
+        "session_usd": round(session_usd, 6),
+        "session_huf": round(session_usd * USD_TO_HUF, 2),
+        "total_usd": round(total_usd, 6),
+        "total_huf": round(total_usd * USD_TO_HUF, 2),
+        "session_calls": len(session),
+        "total_calls": len(COST_LOG),
+    }
+
+    if display:
+        print("\n📊 API KÖLTSÉG ÖSSZESÍTÉS")
+        print(
+            f"🔹 Aktuális futás: {summary['session_usd']:.6f} USD "
+            f"≈ {summary['session_huf']:.2f} Ft ({summary['session_calls']} hívás)"
+        )
+        print(
+            f"🔹 Összesen:        {summary['total_usd']:.6f} USD "
+            f"≈ {summary['total_huf']:.2f} Ft ({summary['total_calls']} hívás)"
+        )
+        print(f"(Napló: {COST_LOG_FILE})")
+
+    return summary
+
+
+# ==============================================================================
+# GPT-5 kompatibilis token paraméter
+# ==============================================================================
+
+def _token_param(model: str):
+    """
+    GPT-5 modellek NEM támogatják a max_tokens paramétert.
+    Helyette max_completion_tokens szükséges.
+    """
+    if "gpt-5" in model:
+        return "max_completion_tokens"
+    return "max_tokens"
+
+
+# ==============================================================================
+# GPT wrapper
+# ==============================================================================
+
+def call_gpt(
+    prompt,
+    tag="analysis",
+    model="gpt-4o",
+    temperature=0.8,
+    client=None,
+    display_cost=True,
+    fallback_models=("gpt-4o", "gpt-4o-mini"),
+    max_tokens=1500,
+):
+    """
+    Egységes GPT hívás – kezeli:
+    ✔ GPT-5 token paraméter cserét
+    ✔ temperature tiltást GPT-5 alatt
+    ✔ automatikus fallbacket
+    ✔ részletes hibakezelést
+    """
+
+    if not client:
+        client = make_openai_ascii_safe_client()
+
+    tag = _to_ascii(tag)
+    prompt = str(prompt)
+
+    print(f"\n🧠 GPT hívás indítása: [{tag}]")
+    print(f"→ Elsődleges modell: {model} | temperature: {temperature}")
+
+    candidates = [model] + [m for m in fallback_models if m != model]
+    last_error = None
+
+    for cand in candidates:
+        print(f"🔹 Modellpróba: {cand}")
+
+        # GPT-5 → temperature tiltás
+        include_temp = False if "gpt-5" in cand else True
+
+        while True:
+            try:
+                kwargs = {
+                    "model": cand,
+                    "messages": [{"role": "user", "content": prompt}],
+                }
+
+                # Token paraméter GPT-5 vs nem GPT-5
+                token_key = _token_param(cand)
+                kwargs[token_key] = max_tokens
+
+                if include_temp:
+                    kwargs["temperature"] = temperature
+
+                response = client.chat.completions.create(**kwargs)
+
+                track_gpt_cost(response, cand, display=display_cost)
+                content = response.choices[0].message.content.strip()
+
+                print(
+                    f"✅ Sikeres válasz: [{tag}] "
+                    f"a(z) {cand} modelltől ({len(content)} karakter)"
+                )
+                return content
+
+            except Exception as e:
+                msg = str(e)
+                last_error = e
+
+                print(f"⚠️ Hiba [{cand}] alatt ({tag}): {msg}")
+
+                # 404 / model not found → továbblépünk
+                if "model_not_found" in msg or "does not exist" in msg:
+                    print("➡️ Fallback a következő modellre...")
+                    break
+
+                # Token paraméter tiltás → már kezeltük, nem kell újrapróbálni
+                if "max_tokens" in msg and "not supported" in msg:
+                    print("⛔ Modell nem támogatja a token-paramétert → továbblépünk")
+                    break
+
+                # Temperature tiltás GPT-5 alatt – biztonsági fallback
+                if "temperature" in msg:
+                    if include_temp:
+                        print("♻️ Újrapróba temperature nélkül")
+                        include_temp = False
+                        continue
+
+                print(f"⛔ Egyéb hiba a {cand} modellnél → továbblépés")
+                break
+
+        print("🔄 Következő modell...")
+
+    print(f"❌ Minden modell hibára futott [{tag}]")
+    return f"[HIBA: {last_error}]"
+
 ###### 2025.12.10. 11:36 #######################################################################################################################################
 
 def qdi(df, **kwargs):
